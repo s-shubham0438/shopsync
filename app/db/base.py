@@ -1,6 +1,9 @@
-from sqlalchemy import MetaData
+import uuid
+from datetime import datetime
+
+from sqlalchemy import DateTime, MetaData, Uuid, func
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 # Deterministic constraint names so Alembic autogenerate produces stable,
 # reviewable migrations (and constraints can be dropped by name later).
@@ -15,3 +18,22 @@ NAMING_CONVENTION = {
 
 class Base(AsyncAttrs, DeclarativeBase):
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
+
+
+class UUIDPrimaryKey:
+    """UUIDv7 primary key: globally unique like v4, but time-ordered, so B-tree inserts stay
+    append-mostly (no random page splits) and ids sort roughly by creation time."""
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid7)
+
+
+class CreatedAt:
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class Timestamps(CreatedAt):
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )

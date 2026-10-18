@@ -15,7 +15,8 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
-DATABASE_URL = get_settings().sqlalchemy_url
+# Tests (and tooling) may pass a URL via config.attributes["database_url"]; else use app settings.
+DATABASE_URL: str = config.attributes.get("database_url") or get_settings().sqlalchemy_url
 
 
 def run_migrations_offline() -> None:
