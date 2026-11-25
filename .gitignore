@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+.secrets/
+
+# Development outbox: emails/SMS written to files instead of being sent (may contain tokens)
+.dev-outbox/

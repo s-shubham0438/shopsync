@@ -1,0 +1,75 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "shopsync-api"
+version = "0.1.0"
+description = "Price comparison backend for Indian e-commerce stores"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.118,<1",
+    "uvicorn[standard]>=0.37",
+    "pydantic>=2.13,<3",
+    "pydantic-settings>=2.11,<3",
+    "sqlalchemy[asyncio]>=2.0.44,<2.2",
+    "asyncpg>=0.31",
+    "alembic>=1.17",
+    "redis>=6.4",
+    "httpx>=0.28",
+    "argon2-cffi>=25.1",  # Argon2id password hashing
+    "pyjwt>=2.10",  # access tokens (HS256)
+    "email-validator>=2.2",  # EmailStr validation (no DNS lookups)
+    "tzdata>=2025.2; sys_platform == 'win32'",  # zoneinfo data (Windows has no system tz database)
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9",
+    "pytest-asyncio>=1.2",
+    "ruff>=0.14",
+    "mypy>=1.18",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+# --------------------------------------------------------------------------- #
+# Tooling
+# --------------------------------------------------------------------------- #
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers"
+markers = ["integration: requires a running PostgreSQL and Redis"]
+filterwarnings = [
+    # Known Alembic compare limits for generated columns and trigram (operator-class) indexes.
+    "ignore:Computed default on .* cannot be modified:UserWarning",
+    "ignore:.*detected to include an operator clause:UserWarning",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+extend-exclude = ["app/db/migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "ASYNC", "S", "RUF", "SIM", "PTH"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]
+"app/db/seed_data.py" = ["E501", "RUF001"]  # tabular data; product titles use en dashes
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+plugins = ["pydantic.mypy"]
+exclude = ["app/db/migrations/versions/"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
